@@ -14,23 +14,23 @@ void DisplayRotate(int rotation)
 	ZeroMemory(&monitor, sizeof(monitor));
 	monitor.cb = sizeof(monitor);
 
-	EnumDisplayDevices(NULL, 0, &monitor, EDD_GET_DEVICE_INTERFACE_NAME);
+	EnumDisplayDevices(nullptr, 1, &monitor, EDD_GET_DEVICE_INTERFACE_NAME);
 
 	if (0 != EnumDisplaySettings(monitor.DeviceName, ENUM_CURRENT_SETTINGS, &dm))
 	{
 		
 		if (rotation == DMDO_DEFAULT)
 		{
-			dm.dmPosition.x = -1950;
-			dm.dmPosition.y = -150;
+			//dm.dmPosition.x = -1950;
+			//dm.dmPosition.y = -150;
 		}
 		if (rotation == DMDO_90)
 		{
-			dm.dmPosition.x = -1200;
-			dm.dmPosition.y = -714;
+			//dm.dmPosition.x = -1200;
+			//dm.dmPosition.y = -714;
 		}
 		// swap height and width
-		DWORD dwTemp = dm.dmPelsHeight;
+		auto dwTemp = dm.dmPelsHeight;
 		dm.dmPelsHeight = dm.dmPelsWidth;
 		dm.dmPelsWidth = dwTemp;
 
@@ -38,7 +38,7 @@ void DisplayRotate(int rotation)
 		dm.dmDisplayOrientation = rotation;
 
 
-		long lRet = ChangeDisplaySettingsEx(monitor.DeviceName, &dm, NULL, 0, NULL);
+		auto lRet = ChangeDisplaySettingsEx(monitor.DeviceName, &dm, nullptr, 0, nullptr);
 		if (DISP_CHANGE_SUCCESSFUL != lRet)
 		{
 			cout << "Failed";// add exception handling here
@@ -48,9 +48,8 @@ void DisplayRotate(int rotation)
 
 int WINAPI WinMain(HINSTANCE hThisInstance, HINSTANCE hPrevInstance, LPSTR lpszArgs, int nWinMode)
 {
-
-	LPCTSTR sPortName = L"COM6";
-	hSerial = ::CreateFile(sPortName, GENERIC_READ | GENERIC_WRITE, 0, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
+	auto sPortName = L"COM4";
+	hSerial = ::CreateFile(sPortName, GENERIC_READ | GENERIC_WRITE, 0, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
 	if (hSerial == INVALID_HANDLE_VALUE)
 	{
 		if (GetLastError() == ERROR_FILE_NOT_FOUND)
@@ -75,17 +74,17 @@ int WINAPI WinMain(HINSTANCE hThisInstance, HINSTANCE hPrevInstance, LPSTR lpszA
 		cout << "error setting serial port state\n";
 	}
 
-	char data [] = "A";
+	auto data = 'A';
 	DWORD dwSize = sizeof(data);
 	DWORD dwBytesWritten;
-	BOOL iRet;
+	//BOOL iRet;
 	char sReceivedChar;
 	DWORD iSize = 0;
 
-	bool is_first_time = 1;
+	auto is_first_time = true;
 
-	int rotation = 0;
-	bool IsRead = 0;
+	auto rotation = 0;
+	//BOOL IsRead ;
 
 	_COMMTIMEOUTS tt;
 	tt.ReadIntervalTimeout = 100;
@@ -95,23 +94,24 @@ int WINAPI WinMain(HINSTANCE hThisInstance, HINSTANCE hPrevInstance, LPSTR lpszA
 
 	SetCommTimeouts(hSerial, &tt);
 
-	while (1)
+	while (true)
 	{
-		iRet = WriteFile(hSerial, data, dwSize, &dwBytesWritten, NULL);
+		WriteFile(hSerial, &data, dwSize, &dwBytesWritten, nullptr);
 
 		//if (iRet)
 		//cout << dwSize << " Bytes in string. " << dwBytesWritten << " Bytes sended. " << endl;
 		iSize = 0;
-		IsRead = ReadFile(hSerial, &sReceivedChar, 1, &iSize, 0);  // получаем 1 байт
+		sReceivedChar = 'N';
+		ReadFile(hSerial, &sReceivedChar, 1, &iSize, nullptr);  // получаем 1 байт
 		if (is_first_time) {
-			if (sReceivedChar == data[0] || sReceivedChar == data[1])
+			if (sReceivedChar == data)
 				rotation = DMDO_DEFAULT;
 			else
 				rotation = DMDO_90;
-			is_first_time = 0;
+			is_first_time = false;
 			continue;
 		}
-		if (sReceivedChar == data[0] || sReceivedChar == data[1]) {
+		if (sReceivedChar == data) {
 			if (rotation == DMDO_90) {
 				rotation = DMDO_DEFAULT;
 				DisplayRotate(rotation);
@@ -128,10 +128,10 @@ int WINAPI WinMain(HINSTANCE hThisInstance, HINSTANCE hPrevInstance, LPSTR lpszA
 		Sleep(1);
 	}
 
-	CloseHandle(hSerial);
+	//CloseHandle(hSerial);
 
 
+	//system("PAUSE");
 
-
-	return 0;
+	//return 0;
 }
